@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <link
+      rel="stylesheet"
+      href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+    />
+  </head>
+  <body>
+    <div class="container mt-5">
+      <h1 class="text-center">List Buku</h1>
+
+      <!-- Form to Add New Book -->
+      <form id="addPerpusForm" class="my-4">
+        <div class="input-group">
+          <input
+            type="text"
+            id="newBuku"
+            class="form-control"
+            placeholder="Add a new book..."
+            required
+          />
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-primary">Add Book</button>
+          </div>
+        </div>
+      </form>
+
+      <!-- List of Books -->
+      <ul id="bookList" class="list-group">
+        <% perpustakaan.forEach(perpus => { %>
+        <li
+          class="list-group-item d-flex justify-content-between align-items-center"
+        >
+          <span class="<%= perpus.completed ? 'completed' : '' %>">
+            <%= perpus.buku %>
+          </span>
+          <div>
+            <button
+              class="btn btn-sm btn-success mr-2 editBtn"
+              data-id="<%= perpus.id %>"
+            >
+              Edit
+            </button>
+            <button
+              class="btn btn-sm btn-danger deleteBtn"
+              data-id="<%= perpus.id %>"
+            >
+              Delete
+            </button>
+          </div>
+        </li>
+        <% }); %>
+      </ul>
+
+      <!-- Edit Todo Modal -->
+      <div
+        id="editModal"
+        class="modal fade"
+        tabindex="-1"
+        role="dialog"
+        aria-labelledby="editModalLabel"
+        aria-hidden="true"
+      >
+        <div class="modal-dialog" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="editModalLabel">Edit Buku</h5>
+              <button
+                type="button"
+                class="close"
+                data-dismiss="modal"
+                aria-label="Close"
+              >
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div class="modal-body">
+              <form id="editBookForm">
+                <div class="form-group">
+                  <label for="editBook">buku</label>
+                  <input
+                    type="text"
+                    id="editBook"
+                    class="form-control"
+                    required
+                  />
+                </div>
+                <button type="submit" class="btn btn-primary mt-3">
+                  Save Changes
+                </button>
+              </form>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- Bootstrap 4 JS + Popper -->
+    <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    <script>
+
+        const API_URL = "/perpustakaan";
+        
+      $(document).ready(function () {
+        let editId;
+
+        $("#addperpusForm").on("submit", function (e) {
+          e.preventDefault();
+          const buku = $("#newBuku").val().trim();
+          if (buku) {
+            $.ajax({
+              url: "/perpustakaan",
+              type: "POST",
+              contentType: "application/json",
+              data: JSON.stringify({ buku: buku }),
+              success: function () {
+                location.reload();
+              },
+              error: function (error) {
+                console.error("Error adding buku:", error.responseText);
+              },
+            });
+          }
+        });
+        
+// Delete a todo
+        $(".deleteBtn").on("click", function () {
+          const id = $(this).data("id");
+          $.ajax({
+            url: "/perpustakaan/" + id,
+            type: "DELETE",
+            success: function () {
+              location.reload();
+            },
+          });
+        });
+
+        // Show edit modal
+        $(".editBtn").on("click", function () {
+          editId = $(this).data("id");
+          const currentTask = $(this).closest("li").find("span").text();
+          $("#editTask").val(currentTask);
+          $("#editModal").modal("show");
+        });
+
+        // Update todo
+        $("#editBookForm").on("submit", function (e) {
+          e.preventDefault();
+          const buku = $("#editBook").val().trim();
+          if (buku) {
+            $.ajax({
+              url: "/perpustakaan/" + editId,
+              type: "PUT",
+              data: JSON.stringify({ buku: buku }),
+              contentType: "application/json",
+              success: function () {
+                location.reload();
+              },
+            });
+          }
+        });
+      });
+    </script>
+  </body>
+</html>
